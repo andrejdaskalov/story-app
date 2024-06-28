@@ -7,13 +7,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
@@ -21,6 +26,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +47,7 @@ fun MainScreen() {
     val chatList = viewModel.chatTextFlow.collectAsState()
     val actions = viewModel.chatActionsFlow.collectAsState()
     val chatTitle = viewModel.chatTitleFlow.collectAsState()
+    val uiState = viewModel.uiStateFlow.collectAsState()
 
     Scaffold (
         topBar = {
@@ -62,7 +69,7 @@ fun MainScreen() {
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            ChatContainer(chatList = chatList.value)
+            ChatContainer(chatList = chatList.value, isLoading = uiState.value == UiState.Loading)
         }
     }
 }
@@ -104,8 +111,11 @@ private fun ChatActions(
 }
 
 @Composable
-fun ChatContainer(chatList: List<ChatMessage>) {
+fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false) {
     val scrollState = rememberScrollState()
+    LaunchedEffect(key1 = chatList, key2 = isLoading) {
+        scrollState.animateScrollTo(Int.MAX_VALUE)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
@@ -121,6 +131,10 @@ fun ChatContainer(chatList: List<ChatMessage>) {
             } else {
                 ModelMessage(it)
             }
+        }
+
+        if (isLoading) {
+            LoadingMessage()
         }
 
     }
@@ -150,6 +164,17 @@ private fun UserMessage(it: ChatMessage) {
                 .fillMaxWidth()
 
         )
+    }
+}
+@Composable
+private fun LoadingMessage() {
+    Box (
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        CircularProgressIndicator()
     }
 }
 

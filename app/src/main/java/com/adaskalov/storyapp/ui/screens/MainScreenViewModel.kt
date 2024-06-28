@@ -27,29 +27,49 @@ class MainScreenViewModel @Inject constructor(
     private val chatTitle : MutableStateFlow<String> = MutableStateFlow("New story")
     val chatTitleFlow: StateFlow<String> = chatTitle
 
+    private val uiState : MutableStateFlow<UiState> = MutableStateFlow(UiState.Idle)
+    val uiStateFlow: StateFlow<UiState> = uiState
+
     fun startChat(topic: String, setting: String, tone: String) {
         viewModelScope.launch {
-            val response: ModelResponse = try {
-                generativeApi.startChat(topic, setting, tone)
+            uiState.value = UiState.Loading
+            var response = ModelResponse("", emptyList())
+            try {
+                response = generativeApi.startChat(topic, setting, tone)
             } catch (e: Exception) {
                 Log.e("MainScreenViewModel", e.stackTraceToString())
-                ModelResponse("Error occurred with generation! ${e.stackTraceToString()}", emptyList())
+                uiState.value = UiState.Error("Error occurred with generation! ${e.stackTraceToString()}")
             }
             chatText.value += ChatMessage(response.response, MessageAuthor.MODEL)
             chatActions.value = response.actions
             chatTitle.value = "$topic in $setting in $tone style"
+            uiState.value = UiState.Idle
         }
     }
 
      fun sendMessage(message: String) {
         viewModelScope.launch {
+            uiState.value = UiState.Loading
             chatActions.value = emptyList()
             chatText.value += ChatMessage(message, MessageAuthor.USER)
-            val response = generativeApi.sendMessage(message)
+            var response = ModelResponse("", emptyList())
+            try {
+                response = generativeApi.sendMessage(message)
+            } catch (e: Exception) {
+                Log.e("MainScreenViewModel", e.stackTraceToString())
+                uiState.value = UiState.Error("Error occurred with generation! ${e.stackTraceToString()}")
+            }
             chatText.value += ChatMessage(response.response, MessageAuthor.MODEL)
             chatActions.value = response.actions
+            uiState.value = UiState.Idle
         }
     }
 
     
+}
+
+sealed class UiState {
+    data object Idle : UiState()
+    data object Loading : UiState()
+    data class Error(val error: String) : UiState()
 }
