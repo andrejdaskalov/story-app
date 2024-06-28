@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.adaskalov.storyapp.ui.screens.MainScreen
+import com.adaskalov.storyapp.ui.screens.NewChatScreen
 import com.adaskalov.storyapp.ui.theme.StoryAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,7 +24,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             StoryAppTheme {
-                MainScreen()
+//                MainScreen()
+                NewChatScreen()
             }
         }
     }

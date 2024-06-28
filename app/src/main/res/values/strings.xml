@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Story App</string>
     <string name="user_action">Action: %1$s</string>
+    <string name="i_want_a_story_about">"I want a story about "</string>
+    <string name="in_setting">in</string>
+    <string name="style">" style."</string>
 </resources>
