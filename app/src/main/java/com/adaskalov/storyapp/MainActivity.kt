@@ -28,7 +28,8 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             topic = destination.topic,
                             setting = destination.setting,
-                            style = destination.style
+                            style = destination.style,
+                            goBack = { navController.popBackStack() }
                         )
                     }
 
