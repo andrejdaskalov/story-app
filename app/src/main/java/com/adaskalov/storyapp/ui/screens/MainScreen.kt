@@ -7,24 +7,18 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,12 +36,20 @@ import com.adaskalov.storyapp.domain.MessageAuthor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    topic: String,
+    setting: String,
+    style: String
+) {
     val viewModel: MainScreenViewModel = hiltViewModel()
     val chatList = viewModel.chatTextFlow.collectAsState()
     val actions = viewModel.chatActionsFlow.collectAsState()
     val chatTitle = viewModel.chatTitleFlow.collectAsState()
     val uiState = viewModel.uiStateFlow.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.startChat(topic, setting, style)
+    }
 
     Scaffold (
         topBar = {
@@ -59,9 +61,6 @@ fun MainScreen() {
         bottomBar = {
             ChatActions(
                 actions = actions.value,
-                startChat = { topic, setting, tone ->
-                    viewModel.startChat(topic, setting, tone)
-                },
                 sendMessage = { message ->
                     viewModel.sendMessage(message)
                 }
@@ -78,7 +77,6 @@ fun MainScreen() {
 @Composable
 private fun ChatActions(
     actions: List<String>,
-    startChat: (String, String, String) -> Unit,
     sendMessage: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -95,17 +93,6 @@ private fun ChatActions(
                 onClick = { sendMessage(it) }) {
                 Text(it)
             }
-        }
-        Button(
-            modifier = Modifier.padding(start = 16.dp),
-            onClick = {
-            startChat(
-                "cowboy cyberpunk",
-                "22nd century russia",
-                "comedy"
-            )
-        }) {
-            Text("Start Chat")
         }
     }
 }
@@ -182,5 +169,5 @@ private fun LoadingMessage() {
 @Preview(showBackground = true)
 @Composable
 fun MainScreenPreview() {
-    MainScreen()
+    MainScreen("cowboy", "cyberpunk", "comedy")
 }

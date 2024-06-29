@@ -4,6 +4,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    kotlin("plugin.serialization")
+    id("kotlin-parcelize") // needed only for non-primitive classes
 }
 
 android {
@@ -114,6 +116,10 @@ dependencies {
     //gson
 
     implementation(libs.gson)
+
+    implementation(libs.kotlinx.serialization.json)
+    // compose navigation
+    implementation(libs.androidx.navigation.compose)
 
 }
 

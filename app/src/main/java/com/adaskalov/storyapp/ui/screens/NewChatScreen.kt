@@ -31,14 +31,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.adaskalov.storyapp.MainScreenDestination
 import com.adaskalov.storyapp.R
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun NewChatScreen() {
+fun NewChatScreen(
+    navigateToMainScreen: (topic: String, setting: String, style: String) -> Unit
+) {
     val topicText = remember { mutableStateOf("") }
     val settingText = remember { mutableStateOf("") }
     val styleText = remember { mutableStateOf("") }
+
+    val navController = rememberNavController()
 
     Scaffold { paddingValues ->
         Box(
@@ -56,7 +63,7 @@ fun NewChatScreen() {
                 Spacer(modifier = Modifier.height(50.dp))
                 ElevatedButton(
                     onClick = {
-//                        TODO
+                        navigateToMainScreen(topicText.value, settingText.value, styleText.value)
                     }) {
                     BodyText(value = "✍️ Craft Story")
                 }
