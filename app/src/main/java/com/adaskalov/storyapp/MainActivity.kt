@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.adaskalov.storyapp.domain.Story
+import com.adaskalov.storyapp.ui.screens.HistoryScreen
 import com.adaskalov.storyapp.ui.screens.MainScreen
 import com.adaskalov.storyapp.ui.screens.NewChatScreen
 import com.adaskalov.storyapp.ui.theme.StoryAppTheme
@@ -68,7 +70,29 @@ class MainActivity : ComponentActivity() {
                         NewChatScreen(
                             navigateToMainScreen = { topic, setting, style ->
                                 navController.navigate(MainScreenDestination(topic, setting, style))
+                            },
+                            navigateToHistoryScreen = {
+                                navController.navigate(HistoryScreenDestination)
                             }
+                        )
+                    }
+
+                    composable<HistoryScreenDestination> {
+                        HistoryScreen(
+                            goBack = { navController.popBackStack() },
+                            navigateToStory = {story ->
+                                story.id?.let { id ->
+                                    navController.navigate(MainScreenExistingDestination(id))
+                                }
+                            }
+                        )
+                    }
+
+                    composable<MainScreenExistingDestination> {
+                        val destination = it.toRoute<MainScreenExistingDestination>()
+                        MainScreen(
+                            storyId = destination.storyId,
+                            goBack = { navController.popBackStack() }
                         )
                     }
                 }
@@ -81,4 +105,9 @@ class MainActivity : ComponentActivity() {
 data class MainScreenDestination(val topic: String, val setting: String, val style: String)
 
 @Serializable
+data class MainScreenExistingDestination(val storyId: Long)
+
+@Serializable
 data object NewChatScreenDestination
+@Serializable
+data object HistoryScreenDestination

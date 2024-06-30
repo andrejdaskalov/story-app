@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -32,7 +33,8 @@ import com.adaskalov.storyapp.R
 
 @Composable
 fun NewChatScreen(
-    navigateToMainScreen: (topic: String, setting: String, style: String) -> Unit
+    navigateToMainScreen: (topic: String, setting: String, style: String) -> Unit,
+    navigateToHistoryScreen: () -> Unit,
 ) {
     val topicText = remember { mutableStateOf("") }
     val settingText = remember { mutableStateOf("") }
@@ -68,6 +70,14 @@ fun NewChatScreen(
                         navigateToMainScreen(topicText.value, settingText.value, styleText.value)
                     }) {
                     BodyText(value = "✍️ Craft Story")
+                }
+
+                Spacer(modifier = Modifier.height(50.dp))
+                OutlinedButton(
+                    onClick = {
+                        navigateToHistoryScreen()
+                    }) {
+                    BodyText(value = "History")
                 }
             }
         }

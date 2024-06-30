@@ -42,10 +42,12 @@ import com.adaskalov.storyapp.domain.MessageAuthor
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    topic: String,
-    setting: String,
-    style: String,
-    goBack: () -> Unit
+    topic: String = "",
+    setting: String = "",
+    style: String = "",
+    goBack: () -> Unit,
+    storyId: Long? = null,
+
 ) {
     val viewModel: MainScreenViewModel = hiltViewModel()
     val chatList = viewModel.chatTextFlow.collectAsState()
@@ -54,7 +56,11 @@ fun MainScreen(
     val uiState = viewModel.uiStateFlow.collectAsState()
 
     LaunchedEffect(Unit) {
-        viewModel.startChat(topic, setting, style)
+        if (storyId != null) {
+            viewModel.loadStory(storyId)
+        } else {
+            viewModel.startChat(topic, setting, style)
+        }
     }
 
     Scaffold (
@@ -178,9 +184,3 @@ private fun LoadingMessage() {
     }
 }
 
-
-@Preview(showBackground = true)
-@Composable
-fun MainScreenPreview() {
-    MainScreen("cowboy", "cyberpunk", "comedy") {}
-}

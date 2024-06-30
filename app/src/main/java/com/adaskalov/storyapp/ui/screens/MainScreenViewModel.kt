@@ -56,7 +56,7 @@ class MainScreenViewModel @Inject constructor(
             uiState.value = UiState.Idle
 
             CoroutineScope(Dispatchers.IO).launch {
-                currentStoryId = storyRepository.insertStory(Story(chatTitle.value, chatText.value))
+                currentStoryId = storyRepository.insertStory(Story(title = chatTitle.value, messages = chatText.value))
             }
         }
     }
@@ -89,6 +89,16 @@ class MainScreenViewModel @Inject constructor(
             }
         }
 
+    }
+
+    fun loadStory(storyId: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            uiState.value = UiState.Loading
+            val story = storyRepository.getStoryById(storyId)
+            chatText.value = story.messages
+            chatTitle.value = story.title
+            uiState.value = UiState.Idle
+        }
     }
 
     

@@ -15,7 +15,7 @@ class StoryRepository @Inject constructor(
 
     fun getStories(): List<Story> {
         return storyDao.getAllStories().map {
-            Story(it.title, emptyList())
+            Story(id = it.id, title =  it.title, messages = emptyList())
         }
     }
 
@@ -24,7 +24,7 @@ class StoryRepository @Inject constructor(
         val messages = storyDao.getChatMessagesByStoryId(id).map {
             ChatMessage(it.message, it.sender.toMessageAuthor())
         }
-        return Story(story.title, messages)
+        return Story(id= story.id, title = story.title, messages = messages)
     }
 
     fun insertMessage(chatMessage: ChatMessage, storyId: Long) {
