@@ -7,7 +7,13 @@ import com.adaskalov.storyapp.data.api.GenerativeApi
 import com.adaskalov.storyapp.data.model.ModelResponse
 import com.adaskalov.storyapp.domain.ChatMessage
 import com.adaskalov.storyapp.domain.MessageAuthor
+import com.adaskalov.storyapp.domain.Story
+import com.adaskalov.storyapp.modules.StoryDatabase
+import com.adaskalov.storyapp.repository.StoryRepository
+import com.adaskalov.storyapp.repository.model.StoryModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -15,8 +21,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainScreenViewModel @Inject constructor(
-    private val generativeApi: GenerativeApi
+    private val generativeApi: GenerativeApi,
+    private val storyRepository: StoryRepository
 ) : ViewModel() {
+
 
     private val chatText : MutableStateFlow<List<ChatMessage>> = MutableStateFlow(emptyList())
     val chatTextFlow: StateFlow<List<ChatMessage>> = chatText
@@ -29,6 +37,8 @@ class MainScreenViewModel @Inject constructor(
 
     private val uiState : MutableStateFlow<UiState> = MutableStateFlow(UiState.Idle)
     val uiStateFlow: StateFlow<UiState> = uiState
+
+    private var currentStoryId: Long = 0
 
     fun startChat(topic: String, setting: String, tone: String) {
         viewModelScope.launch {
@@ -44,6 +54,10 @@ class MainScreenViewModel @Inject constructor(
             chatActions.value = response.actions
             chatTitle.value = "$topic in $setting in $tone style"
             uiState.value = UiState.Idle
+
+            CoroutineScope(Dispatchers.IO).launch {
+                currentStoryId = storyRepository.insertStory(Story(chatTitle.value, chatText.value))
+            }
         }
     }
 
@@ -52,6 +66,10 @@ class MainScreenViewModel @Inject constructor(
             uiState.value = UiState.Loading
             chatActions.value = emptyList()
             chatText.value += ChatMessage(message, MessageAuthor.USER)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                storyRepository.insertMessage(ChatMessage(message, MessageAuthor.USER), currentStoryId)
+            }
             var response = ModelResponse("", emptyList())
             try {
                 response = generativeApi.sendMessage(message)
@@ -62,7 +80,15 @@ class MainScreenViewModel @Inject constructor(
             chatText.value += ChatMessage(response.response, MessageAuthor.MODEL)
             chatActions.value = response.actions
             uiState.value = UiState.Idle
+
+            CoroutineScope(Dispatchers.IO).launch {
+                storyRepository.insertMessage(
+                    ChatMessage(response.response, MessageAuthor.MODEL),
+                    currentStoryId
+                )
+            }
         }
+
     }
 
     

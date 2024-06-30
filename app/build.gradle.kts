@@ -121,6 +121,13 @@ dependencies {
     // compose navigation
     implementation(libs.androidx.navigation.compose)
 
+    // room
+    implementation(libs.room.runtime)
+    annotationProcessor(libs.room.compiler)
+    //noinspection KaptUsageInsteadOfKsp
+    kapt(libs.room.compiler)
+    implementation(libs.androidx.room.ktx)
+
 }
 
 // Allow references to generated code
