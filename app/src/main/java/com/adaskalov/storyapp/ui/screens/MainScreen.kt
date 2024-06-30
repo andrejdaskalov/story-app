@@ -12,15 +12,20 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,25 +41,46 @@ import com.adaskalov.storyapp.domain.MessageAuthor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    topic: String = "",
+    setting: String = "",
+    style: String = "",
+    goBack: () -> Unit,
+    storyId: Long? = null,
+
+) {
     val viewModel: MainScreenViewModel = hiltViewModel()
     val chatList = viewModel.chatTextFlow.collectAsState()
     val actions = viewModel.chatActionsFlow.collectAsState()
     val chatTitle = viewModel.chatTitleFlow.collectAsState()
+    val uiState = viewModel.uiStateFlow.collectAsState()
+
+    LaunchedEffect(Unit) {
+        if (storyId != null) {
+            viewModel.loadStory(storyId)
+        } else {
+            viewModel.startChat(topic, setting, style)
+        }
+    }
 
     Scaffold (
         topBar = {
             TopAppBar(
                 title = { Text(chatTitle.value) },
-                scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+                scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
+                navigationIcon = {
+                    TextButton(onClick = {
+                        viewModel.persistActions()
+                        goBack()
+                    }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
             )
                  },
         bottomBar = {
             ChatActions(
                 actions = actions.value,
-                startChat = { topic, setting, tone ->
-                    viewModel.startChat(topic, setting, tone)
-                },
                 sendMessage = { message ->
                     viewModel.sendMessage(message)
                 }
@@ -62,7 +88,7 @@ fun MainScreen() {
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            ChatContainer(chatList = chatList.value)
+            ChatContainer(chatList = chatList.value, isLoading = uiState.value == UiState.Loading)
         }
     }
 }
@@ -71,7 +97,6 @@ fun MainScreen() {
 @Composable
 private fun ChatActions(
     actions: List<String>,
-    startChat: (String, String, String) -> Unit,
     sendMessage: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -89,23 +114,15 @@ private fun ChatActions(
                 Text(it)
             }
         }
-        Button(
-            modifier = Modifier.padding(start = 16.dp),
-            onClick = {
-            startChat(
-                "cowboy cyberpunk",
-                "22nd century russia",
-                "comedy"
-            )
-        }) {
-            Text("Start Chat")
-        }
     }
 }
 
 @Composable
-fun ChatContainer(chatList: List<ChatMessage>) {
+fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false) {
     val scrollState = rememberScrollState()
+    LaunchedEffect(key1 = chatList, key2 = isLoading) {
+        scrollState.animateScrollTo(Int.MAX_VALUE)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
@@ -121,6 +138,10 @@ fun ChatContainer(chatList: List<ChatMessage>) {
             } else {
                 ModelMessage(it)
             }
+        }
+
+        if (isLoading) {
+            LoadingMessage()
         }
 
     }
@@ -152,10 +173,15 @@ private fun UserMessage(it: ChatMessage) {
         )
     }
 }
-
-
-@Preview(showBackground = true)
 @Composable
-fun MainScreenPreview() {
-    MainScreen()
+private fun LoadingMessage() {
+    Box (
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        CircularProgressIndicator()
+    }
 }
+
