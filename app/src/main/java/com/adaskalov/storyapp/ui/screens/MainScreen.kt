@@ -1,6 +1,7 @@
 package com.adaskalov.storyapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +15,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.adaskalov.storyapp.R
@@ -47,8 +46,11 @@ fun MainScreen(
     style: String = "",
     goBack: () -> Unit,
     storyId: Long? = null,
+    speak: (String) -> Unit,
+    stopSpeaking: () -> Unit,
+    isSpeaking: () -> Boolean,
 
-) {
+    ) {
     val viewModel: MainScreenViewModel = hiltViewModel()
     val chatList = viewModel.chatTextFlow.collectAsState()
     val actions = viewModel.chatActionsFlow.collectAsState()
@@ -88,7 +90,7 @@ fun MainScreen(
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
-            ChatContainer(chatList = chatList.value, isLoading = uiState.value == UiState.Loading)
+            ChatContainer(chatList = chatList.value, isLoading = uiState.value == UiState.Loading, speak = speak, stopSpeaking = stopSpeaking, isSpeaking = isSpeaking)
         }
     }
 }
@@ -118,7 +120,7 @@ private fun ChatActions(
 }
 
 @Composable
-fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false) {
+fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false, speak: (String) -> Unit, stopSpeaking: () -> Unit, isSpeaking: () -> Boolean){
     val scrollState = rememberScrollState()
     LaunchedEffect(key1 = chatList, key2 = isLoading) {
         scrollState.animateScrollTo(Int.MAX_VALUE)
@@ -136,7 +138,7 @@ fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false) {
             if (it.messageBy == MessageAuthor.USER) {
                 UserMessage(it)
             } else {
-                ModelMessage(it)
+                ModelMessage(it, speak = speak, stopSpeaking = stopSpeaking, isSpeaking = isSpeaking)
             }
         }
 
@@ -148,10 +150,18 @@ fun ChatContainer(chatList: List<ChatMessage>, isLoading: Boolean = false) {
 }
 
 @Composable
-private fun ModelMessage(it: ChatMessage) {
+private fun ModelMessage(it: ChatMessage, speak: (String) -> Unit, stopSpeaking: () -> Unit, isSpeaking: () -> Boolean) {
     Text(
         text = it.message,
-        modifier = Modifier.padding(vertical = 16.dp, horizontal = 8.dp)
+        modifier = Modifier
+            .clickable {
+                if (isSpeaking()) {
+                    stopSpeaking()
+                } else {
+                    speak(it.message)
+                }
+            }
+            .padding(vertical = 16.dp, horizontal = 8.dp)
     )
 }
 
