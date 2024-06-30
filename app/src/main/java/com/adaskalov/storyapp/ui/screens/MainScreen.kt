@@ -70,6 +70,7 @@ fun MainScreen(
                 scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(),
                 navigationIcon = {
                     TextButton(onClick = {
+                        viewModel.persistActions()
                         goBack()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

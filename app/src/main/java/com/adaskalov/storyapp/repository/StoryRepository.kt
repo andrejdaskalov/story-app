@@ -4,6 +4,7 @@ import com.adaskalov.storyapp.domain.ChatMessage
 import com.adaskalov.storyapp.domain.Story
 import com.adaskalov.storyapp.domain.toMessageAuthor
 import com.adaskalov.storyapp.modules.StoryDatabase
+import com.adaskalov.storyapp.repository.model.ActionModel
 import com.adaskalov.storyapp.repository.model.ChatMessageModel
 import com.adaskalov.storyapp.repository.model.StoryModel
 import javax.inject.Inject
@@ -49,5 +50,24 @@ class StoryRepository @Inject constructor(
             insertMessage(it, id)
         }
         return id
+    }
+
+    fun updateStoryActions(storyId: Long, actions: List<String>) {
+        storyDao.deleteActionsByStoryId(storyId)
+        actions.forEach {
+            storyDao.insertAction(
+                ActionModel(
+                    0,
+                    it,
+                    storyId
+                )
+            )
+        }
+    }
+
+    fun getStoryActions(storyId: Long): List<String> {
+        return storyDao.getActionsByStoryId(storyId).map {
+            it.action
+        }
     }
 }

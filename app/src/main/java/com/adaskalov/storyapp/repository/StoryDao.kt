@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import com.adaskalov.storyapp.repository.model.ChatMessageModel
 import com.adaskalov.storyapp.repository.model.StoryModel
+import com.adaskalov.storyapp.repository.model.ActionModel
 
 @Dao
 interface StoryDao {
@@ -27,4 +28,13 @@ interface StoryDao {
 
     @Insert
     fun insertStory(storyModel: StoryModel) : Long
+
+    @Query("DELETE FROM ActionModel WHERE storyId = :storyId")
+    fun deleteActionsByStoryId(storyId: Long)
+
+    @Insert
+    fun insertAction(actionModel: ActionModel) : Long
+
+    @Query("SELECT * FROM ActionModel WHERE storyId = :storyId")
+    fun getActionsByStoryId(storyId: Long) : List<ActionModel>
 }

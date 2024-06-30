@@ -92,12 +92,21 @@ class MainScreenViewModel @Inject constructor(
     }
 
     fun loadStory(storyId: Long) {
+        currentStoryId = storyId
         CoroutineScope(Dispatchers.IO).launch {
             uiState.value = UiState.Loading
             val story = storyRepository.getStoryById(storyId)
+            val actions = storyRepository.getStoryActions(storyId)
             chatText.value = story.messages
             chatTitle.value = story.title
+            chatActions.value = actions
             uiState.value = UiState.Idle
+        }
+    }
+
+    fun persistActions() {
+        CoroutineScope(Dispatchers.IO).launch {
+            storyRepository.updateStoryActions(currentStoryId, chatActions.value)
         }
     }
 
